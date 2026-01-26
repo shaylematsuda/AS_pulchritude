@@ -1,0 +1,131 @@
+date,location,person,AM/PM,bag,time,depth_ft,basket,notes
+20260119,Onososopo,TC,AM/PM,20,11:24,3,22,
+20260119,Onososopo,TC,AM/PM,39,11:27,3,23,
+20260119,Gataivai,SM,PM,58,3:23,3,18,
+20260119,Gataivai,SM,PM,57,3:30,2,43,
+20260119,Gataivai,SM,PM,5,3:34,3,15,
+20260119,Gataivai,SM,PM,6,3:41,4.5,21,
+20260119,Gataivai,SM,PM,1,3:48,2,30,
+20260119,Nuuuli,SM,PM,60,4:50,2.5,35,
+20260119,Nuuuli,SM,PM,2,5:03,2,19,
+20260119,Nuuuli,SM,PM,55,5:07,1.5,34,
+20260119,Nuuuli,SM,PM,56,5:17,2,16,
+20260119,Gataivai,TC,PM,18,3:01,2,26,
+20260119,Gataivai,TC,PM,19,3:12,3,32,
+20260119,Gataivai,TC,PM,16,3:23,8,42,
+20260119,Gataivai,TC,PM,37,3:40,4,31,
+20260119,Gataivai,TC,PM,17,3:47,3,25,
+20260119,Nuuuli,TC,PM,38,4:56,2,29,
+20260119,Nuuuli,TC,PM,36,5:03,2,17,
+20260119,Nuuuli,TC,PM,35,5:14,2,36,
+20260119,Nuuuli,TC,PM,31,5:39,2,41,
+20260119,Nuuuli,TC,PM,32,5:44,3,33,
+20260119,Nuuuli,TC,PM,30,5:51,2,28,
+20260119,Gataivai,RC,PM,11,2:57,7,39,
+20260119,Gataivai,RC,PM,12,3:07,7,27,
+20260119,Gataivai,RC,PM,7,3:12,10,24,
+20260119,Gataivai,RC,PM,13,3:48,5,38,
+20260119,Gataivai,RC,PM,10,3:56,8,37,
+20260119,Nuuuli,RC,PM,8,4:55,3,14,
+20260119,Nuuuli,RC,PM,9,4:58,3,13,
+20260119,Nuuuli,RC,PM,3,5:11,3,20,"black mesh bag photo, bleached tops"
+20260119,Nuuuli,RC,PM,59,5:21,3,40,"bleached tops, blue mesh bag photo"
+20260120,Fatu Rock,SM,PM,82,6:00,2.5,41,
+20260120,Fatu Rock,SM,PM,84,6:03,2.5,14,
+20260120,Fatu Rock,SM,PM,87,6:05,2,32,
+20260120,Fatu Rock,TC,PM,92,5:12,1,16,
+20260120,Fatu Rock,TC,PM,97,5:30,2,40,
+20260120,Fatu Rock,TC,PM,73,5:50,3,31,
+20260121,Amouli,SM,AM,37,8:21,3,BAG37,
+20260121,Amouli,SM,AM,1,8:24,5,23,
+20260121,Amouli,SM,AM,30,8:30,3,21,
+20260121,Amouli,SM,AM,89,8:33,2,37,
+20260121,Amouli,SM,AM,81,8:37,3,20,
+20260121,Amouli,SM,AM,86,8:42,2,46,
+20260121,Amouli,SM,AM,90,8:46,2.5,BAG90,
+20260121,Amouli,SM,AM,85,8:51,3,34,
+20260121,Alofau,SM,AM,68,9:46,2,BAG68,
+20260121,Alofau,SM,AM,70,9:52,5,BAG70,
+20260121,Alofau,SM,AM,62,10:03,7,BAG62,
+20260121,Alofau,SM,AM,7,10:14,7,43,top bleached
+20260121,Alofau,SM,AM,6,10:17,7,33,
+20260121,Alofau,SM,AM,69,10:22,5,BAG69,
+20260121,Amouli,SM,AM,35,11:14,2,35,
+20260121,Amouli,SM,AM,17,11:18,2,18,
+20260121,Amouli,SM,AM,67,11:21,2,29,
+20260121,Amouli,TC,AM,78,8:35,3,NA,Lost and not put in basket
+20260121,Amouli,TC,AM,31,8:41,3,NA,Lost and not put in basket
+20260121,Amouli,TC,AM,33,8:47,3,36,
+20260121,Amouli,TC,AM,15,8:54,3,28,
+20260121,Alofau,TC,AM,71,9:50,4,BAG71,
+20260121,Alofau,TC,AM,14,10:06,5,48,
+20260121,Alofau,TC,AM,100,10:26,8,26,
+20260121,Alofau,TC,AM,99,10:37,9,17,
+20260121,Amouli,TC,AM,94,11:13,3,13,
+20260121,Amouli,TC,AM,79,11:18,2.5,30,
+20260121,Amouli,TC,AM,98,11:22,3,22,
+20260121,Amouli,RC,AM,8,8:47,3,39,
+20260121,Amouli,RC,AM,60,8:50,3,27,
+20260121,Amouli,RC,AM,32,8:53,2,BAG32,
+20260121,Alofau,RC,AM,51,9:48,7,47,
+20260121,Alofau,RC,AM,9,9:52,5,24,
+20260121,Alofau,RC,AM,11,10:00,3,44,
+20260121,Alofau,RC,AM,52,10:04,3,15,
+20260121,Alofau,RC,AM,54,10:12,6,42,
+20260121,Alofau,RC,AM,53,10:17,7,BAG53,
+20260121,Alofau,RC,AM,19,10:24,7,BAG19,
+20260121,Amouli,RC,AM,50,11:17,2,45,
+20260121,Amouli,RC,AM,49,11:19,2,38,
+20260121,Amouli,RC,AM,56,11:23,2,19,
+20260121,Amouli,RC,AM,55,11:26,2,25,
+20260122,Nuuuli,RC,PM,63,2:01,2,28,
+20260122,Nuuuli,RC,PM,61,2:07,2,13,
+20260122,Nuuuli,RC,PM,57,2:12,2,33,
+20260122,Nuuuli,RC,PM,88,2:16,2,17,
+20260122,Nuuuli,RC,PM,64,2:58,2,35,
+20260122,Nuuuli,RC,PM,79,3:01,2,30,
+20260122,Nuuuli North,RC,PM,66,4:02,6,27,
+20260122,Nuuuli North,RC,PM,28,4:12,8,22,
+20260122,Nuuuli North,RC,PM,27,4:17,5,46,
+20260122,Nuuuli North,RC,PM,65,4:22,5,34,
+20260122,Nuuuli North,RC,PM,25,4:32,4,25,
+20260122,Nuuuli North,RC,PM,23,4:40,7,43,
+20260122,Nuuuli North,RC,PM,83,5:06,1,21,
+20260122,Nuuuli North,RC,PM,26,5:09,2,18,
+20260122,Nuuuli North,RC,PM,24,5:13,5,47,
+20260122,Alenga,TC,AM,96,11:34,2,29,
+20260122,Alenga,TC,AM,91,11:42,3,38,basket no hard to read
+20260122,Alenga,TC,AM,77,12:00,2,39,
+20260122,Nuuuli,TC,PM,95?,2:01,2,24,
+20260122,Nuuuli,TC,PM,72,2:16,2,20,
+20260122,Nuuuli,TC,PM,80,2:48,2,26,
+20260122,Nuuuli,TC,PM,86,2:51,2,36,
+20260122,Nuuuli,TC,PM,75,3:00,1,32,
+20260122,Nuuuli,TC,PM,1,3:02,1,19,
+20260122,Nuuuli North,TC,PM,15,3:58,6,31,
+20260122,Nuuuli North,TC,PM,29,4:05,7,16,
+20260122,Nuuuli North,TC,PM,76,4:13,7,48,
+20260122,Nuuuli North,TC,PM,21,4:24,7,42,
+20260122,Nuuuli North,TC,PM,74,4:32,5,14,
+20260122,Nuuuli North,TC,PM,49,4:41,6,23,
+20260122,Nuuuli North,TC,PM,8,4:48,5,40,
+20260122,Nuuuli North,TC,PM,6,5:03,4,44,top of the big patch of 3
+20260122,Nuuuli North,TC,PM,54,5:05,6,45,middle of the big patch
+20260122,Nuuuli North,TC,PM,82,5:10,4,37,right of the big patch
+20260122,Nuuuli North,TC,PM,50,5:15,1,15,
+20260124,Auasi,SM,AM,47,9:05,3,20,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,SM,AM,46,9:10,1.5,23,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,SM,AM,44,9:13,2,31,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,SM,AM,48,9:17,3,47,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,SM,AM,45,9:19,1.5,19,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,SM,AM,42,9:24,2,30,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,SM,AM,41,9:28,1.5,26,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,RC,AM,59,9:05,2,39,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,RC,AM,22,9:09,2,48,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,RC,AM,56,9:14,3,32,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,RC,AM,18,9:17,3,25,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,RC,AM,58,9:20,3,27,Died overnight in holding tank due to 46C temp spike
+20260124,Auasi,RC,AM,38,9:27,3,37,Died overnight in holding tank due to 46C temp spike
+20260124,Airport,RC,PM,73,3:45,7,22,Died overnight in holding tank due to 46C temp spike
+20260124,Airport,TC,PM,82,4:05,10,44,Died overnight in holding tank due to 46C temp spike
+20260124,Utulei ,TC,AM,29,12:01,4,18,Died overnight in holding tank due to 46C temp spike
