@@ -1,6 +1,6 @@
 date,location,person,AM/PM,bag,time,depth_ft,basket,notes
-20260119,Onososopo,TC,AM/PM,20,11:24,3,22,
-20260119,Onososopo,TC,AM/PM,39,11:27,3,23,
+20260119,Onososopo,TC,AM,20,11:24,3,22,
+20260119,Onososopo,TC,AM,39,11:27,3,23,
 20260119,Gataivai,SM,PM,58,3:23,3,18,
 20260119,Gataivai,SM,PM,57,3:30,2,43,
 20260119,Gataivai,SM,PM,5,3:34,3,15,
@@ -95,7 +95,7 @@ date,location,person,AM/PM,bag,time,depth_ft,basket,notes
 20260122,Nuuuli North,RC,PM,24,5:13,5,47,
 20260122,Alenga,TC,AM,96,11:34,2,29,
 20260122,Alenga,TC,AM,91,11:42,3,38,basket no hard to read
-20260122,Alenga,TC,AM,77,12:00,2,39,
+20260122,Alenga,TC,PM,77,12:00,2,39,
 20260122,Nuuuli,TC,PM,95?,2:01,2,24,
 20260122,Nuuuli,TC,PM,72,2:16,2,20,
 20260122,Nuuuli,TC,PM,80,2:48,2,26,
@@ -128,4 +128,4 @@ date,location,person,AM/PM,bag,time,depth_ft,basket,notes
 20260124,Auasi,RC,AM,38,9:27,3,37,Died overnight in holding tank due to 46C temp spike
 20260124,Airport,RC,PM,73,3:45,7,22,Died overnight in holding tank due to 46C temp spike
 20260124,Airport,TC,PM,82,4:05,10,44,Died overnight in holding tank due to 46C temp spike
-20260124,Utulei ,TC,AM,29,12:01,4,18,Died overnight in holding tank due to 46C temp spike
+20260124,Utulei ,TC,PM,29,12:01,4,18,Died overnight in holding tank due to 46C temp spike
