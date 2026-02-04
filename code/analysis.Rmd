@@ -27,6 +27,18 @@ md <- read_csv("data/datasheets/Collection_data.csv") %>%
 # write_csv(md, "colony_metadata_parsed.csv")
 
 # md[which(duplicated(md$basket)),]
+
+#Ross your code above didn't work for me.., this does:
+md <- read_csv("data/datasheets/Collection_data.csv") %>%
+  unite("date_time", date, time, `AM/PM`, sep = " ", remove = TRUE) %>%
+  mutate(
+    date_time = parse_date_time(
+      date_time,
+      orders = "Ymd IMS p",
+      tz = "Pacific/Pago_Pago"
+    ),
+    date_time_min = format(date_time, "%F %H:%M")
+  )
 ```
 
 ```{r}
