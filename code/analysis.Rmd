@@ -34,7 +34,7 @@ md <- read_csv("data/datasheets/Collection_data.csv") %>%
 
 ```{r}
 # Read in GPS tracks
-gps_track_files <- list.files("data/GPS", pattern = ".csv", full.names = TRUE)
+gps_track_files <- list.files("data/gps_tracks", pattern = ".csv", full.names = TRUE)
 
 # Dynamically read files that have single or multiple tracks (variable numbers of lines before header row)
 # Define a function to read each CSV with a flexible header row
