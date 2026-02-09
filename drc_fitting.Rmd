@@ -1,0 +1,298 @@
+---
+title: "drc_fitting"
+author: "Shayle Matsuda"
+date: "2026-02-06"
+output: html_document
+---
+
+---
+title: "drc_fitting"
+author: "ross"
+date: "12/6/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(drc)
+library(quantreg)
+library(mcr)
+library(broom)
+library(lubridate)
+library(janitor)
+library(tidyverse)
+
+# Create custom ggplot theme
+theme_custom <- function() {
+  theme_bw(base_size = 10, base_family = "Arial") %+replace%
+    theme(
+      panel.grid.major = element_blank(), 
+      panel.grid.minor = element_blank(), 
+      panel.background = element_blank(),
+      panel.border = element_rect(color = "black", fill = NA),
+      legend.background = element_rect(fill = NA, colour = NA),
+      axis.title = element_text(size = 7),
+      axis.text = element_text(size = 5)
+    )
+}
+
+# # Labeller for treatments
+# treatment_labeller <- function(variable, value){
+#   return(list(
+#   'Normal'="High light",
+#   'lowLight'="Low light")[value])
+# }
+# 
+
+# Function to pivot IPAM data to long form with column for AOI
+ipam_convert <- function(data) {
+  data %>% select_if(~ !any(is.na(.))) %>%
+  pivot_longer(cols = starts_with("f") | starts_with("y")) %>%
+  separate(name, into = c("var", "aoi"), sep = "(?<=[A-Za-z_])(?=[0-9])")
+}
+```
+
+# Import rack, temperature, and coral position information
+```{r}
+# Import coral collection data
+corals <- read_csv("data/raw_field_data/Collection_data.csv") %>%
+  mutate(date = as_date(as.character(date_CBASS))) %>%
+  filter(!is.na(date_CBASS))
+
+# Import CBASS metadata (positions of corals on racks, and CBASS temperatures of each rack)
+rack_pos <- read_csv("data/raw_field_data/CBASS_rack_basket.csv") %>%
+  mutate(date = as_date(as.character(date)))
+
+rack_temp <- read_csv("data/raw_field_data/CBASS_rack_temp_map.csv", show_col_types = FALSE) %>%
+  mutate(date = ymd(date)) %>%
+  dplyr::select(1:4)
+
+
+
+md <- full_join(rack_temp, rack_pos)
+md <- md %>%
+  unite(rack, rack_no, rack_config, sep = "")
+
+```
+
+# Import I-PAM data
+```{r}
+# Import PAM data
+# List PAM files for pulchritude corals
+pamfiles <- list.files(path = "data/IPAM_data", pattern = "*.csv", recursive = TRUE, full.names = TRUE)
+pamfiles <- grep("Pulchritude", pamfiles, value = TRUE)
+
+# Import data from each file
+pam0 <- pamfiles %>%
+  map_dfr(read_delim, delim = ";", .id = "file_id") %>%
+  janitor::clean_names()
+
+# Get date from name of directory of each PAM file (the date of each CBASS run), NOT the date/time in the .csv file, because the PAM laptop's clock was not necessarily set to the correct time zone.
+pam1 <- pam0 %>%
+  mutate(file_name = basename(pamfiles[as.numeric(file_id)]),
+         date = as_date(str_extract(pamfiles[as.numeric(file_id)], "\\d{8}"), format = "%Y%m%d")) %>%
+  dplyr::select(file_name, everything(), -file_id)
+
+# # For files that have multiple sat pulses -- keep the last one only
+pam1 <- pam1 %>%
+  group_by(file_name, date) %>%
+  filter(no == max(no)) %>%
+  ungroup()
+
+# For each source file, convert to long form data with F, FM, and YII for each AOI
+
+pam1 <- pam1 %>%
+  nest(data = -c(file_name, date)) %>%
+  mutate(data2 = purrr::map(data, ipam_convert)) %>%
+  unnest(data2) %>%
+  group_by(file_name, date) %>%
+  dplyr::select(file_name, date, aoi, var, value) %>%
+  ungroup()
+
+
+pam1 <- pam1 %>%
+  mutate(rack = str_remove(file_name, ".csv")) %>%
+  dplyr::select(rack, everything(), -file_name)
+  
+
+# Join PAM data with rack order information (which PAM file corresponds to which rack of corals)
+pam <- pam1 %>%
+  group_by(rack, date) %>%
+  mutate(position = ceiling(as.numeric(aoi)/2)) %>%
+  ungroup()
+
+pamf <- left_join(pam, md) %>% left_join(corals)
+
+#Row 3817 of `x` matches multiple rows in `y`.
+left_join(pam, md) %>% slice(3817) #2022-12-10 basket 134
+corals %>% filter(date == "2022-12-10", basket_no == 134)
+
+#Row 20 of `y` matches multiple rows in `x`.
+corals %>% slice(20)
+left_join(pam, md) %>% filter(date == "2022-12-04", basket_no == 20) %>% print(n = nrow(.))
+
+### ^^ need to reconcile these errors above. until then, omit these rows.
+
+pamf1 <- pamf %>% filter(!(date == "2022-12-04" & basket_no == 20),
+                        !(date == "2022-12-10" & basket_no == 134))
+pamf2 <- filter(pamf1, !is.na(basket_no))
+
+```
+
+# Fit dose-response curves
+```{r}
+# Get Fv/Fm data and tidy
+df <- pamf2 %>%
+  #dplyr::select(rack, date_CBASS, tag_no, temp, aoi, position, var, value) %>%
+  #filter(date_CBASS < 20240000) %>%
+  mutate(max_temp = as.numeric(temp)) %>%
+  pivot_wider(names_from = var, values_from = value) %>%
+  mutate(fvfmraw = y_ii_, fvfm = y_ii_) %>%
+  dplyr::select(date, tag_no, max_temp, f, fm, fvfmraw, fvfm)
+
+ggplot(df, aes(x = max_temp, y = fvfm, color = factor(year(date)))) +
+  geom_jitter()
+
+
+# Define function to fit 3-parameter LL model to data and return NULL if fitting error
+ll3 <- function(data) {
+  drm(fvfm ~ max_temp, data = data, 
+      fct = LL.3(names = c("hill", "max", "ED50")))}#,
+      # upperl = c(50, 0.7, 40),
+      # lowerl = c(20, 0.3, 30))}
+tryll3 <- possibly(ll3, otherwise = NULL)
+
+# Fit model to each coral, get parameters, fitted values, and residuals
+initmods <- df %>%
+  nest(data = c(max_temp, f, fm, fvfmraw, fvfm)) %>%
+  # Fit the model to each coral
+  mutate(ll3 = map(data, tryll3)) %>%
+  # Get model parameters and fitted values/residuals
+  mutate(pars = map(ll3, tidy),
+         pred = map2(ll3, data, ~augment(.x, drop_na(.y, fvfm))))
+
+# Extract ed50 parameter values from model fits
+ed50 <- initmods %>% 
+  dplyr::select(date, tag_no, pars) %>%
+  unnest(pars) %>%
+  filter(term == "ED50")
+
+ggplot(ed50, aes(x = estimate, fill = factor(year(date)))) +
+  geom_histogram(position = "stack", alpha = 0.8, binwidth = 0.2) +
+  theme_minimal()
+
+ggplot(ed50, aes(x = factor(year(date)), y = estimate)) +
+  geom_violin() +
+  geom_jitter(width = 0.25)
+
+# Collect raw data, fitted values, and diagnostics
+vals <- initmods %>%
+  select(date, tag_no, pred) %>%
+  unnest(pred) %>%
+  full_join(ed50) %>%
+  full_join(df) %>%
+  rename(ed50 = estimate) %>%
+  mutate(problem = "none")
+
+vals %>%
+  filter(tag_no == 11)
+
+
+
+```
+
+```{r drc_diagnostics}
+
+# #### diagnostics
+# Extract hill parameter values from model fits
+# hill <- initmods %>%
+#   select(nursery, geno, pars) %>%
+#   unnest(pars) %>%
+#   filter(term == "hill")
+# ggplot(hill) +
+#   geom_histogram(aes(x = estimate))
+# hill %>% arrange(estimate)
+# 
+# maxes <- initmods %>%
+#   select(nursery, geno, pars) %>%
+#   unnest(pars) %>%
+#   filter(term == "max")
+# ggplot(maxes) +
+#   geom_histogram(aes(x = estimate))
+# maxes %>% arrange(-estimate)
+
+# # Identify problematic data points based on cook's distance and residuals
+counts <- vals %>%
+  mutate(geno = tag_no) %>%
+  group_by(geno) %>%
+  summarise(n = sum(!is.na(fvfm)))
+dff <- vals %>%
+  mutate(geno = tag_no) %>%
+  left_join(counts) %>%
+  group_by(geno) %>%
+  mutate(cooksd.thresh = 4/n) %>%   # Calculate cook's distance threshold as 4/n
+  mutate(max_to_remove = floor(n * 0.2)) %>%
+  ungroup() %>%
+  mutate(problem = case_when(.cooksd > cooksd.thresh ~ "high cook's distance",
+                             TRUE ~ "none")) %>%
+  group_by(geno, outlier = problem %in% c("high cook's distance", "high residual")) %>%
+  mutate(n.outliers = n(),
+         rank.out = order(.cooksd, decreasing = TRUE)) %>%
+  ungroup() %>%
+  mutate(fvfm = case_when(outlier & rank.out <= max_to_remove ~ .fitted,
+                          TRUE ~ fvfm))
+
+# Refit models without problematic points
+fmods <- dff %>%
+  select(geno, max_temp, f, fm, fvfmraw, problem, fvfm) %>%
+  nest(data = c(max_temp, f, fm, fvfmraw, fvfm, problem)) %>%
+  # Fit the model to each coral
+  mutate(ll3 = map(data, tryll3)) %>%
+  # Get model parameters and fitted values/residuals
+  mutate(pars = map(ll3, tidy),
+         pred = map2(ll3, data, ~augment(.x, drop_na(.y, fvfm))))
+
+# Extract ed50 parameter values from model fits
+fed50 <- fmods %>%
+  select(geno, pars) %>%
+  unnest(pars) %>%
+  filter(term == "ED50")
+
+# Collect raw data, fitted values, and ed50 estimates
+fvals <- fmods %>%
+  select(geno, pred) %>%
+  unnest(pred) %>%
+  full_join(fed50) %>%
+  full_join(select(dff, geno, max_temp, f, fm, fvfmraw, problem, fvfm)) %>%
+  rename(ed50 = estimate)
+```
+
+
+# Plot dose response curves for each genotype
+```{r plot, fig.width = 10, fig.height = 10}
+ed50 <- ed50 %>%
+  mutate(tag_no = factor(tag_no))
+fed50 <- fed50 %>%
+  mutate(tag_no = factor(geno))
+
+
+vals <- vals %>%
+  mutate(tag_no = fct_reorder(factor(tag_no), ed50, .fun = mean))
+fvals <- fvals %>%
+  mutate(geno = fct_reorder(factor(geno), ed50, .fun = mean))
+
+
+ggplot(vals, aes(x = max_temp, y = fvfm)) +
+  geom_point() +
+  geom_line(aes(y = .fitted)) +
+  geom_vline(aes(xintercept = estimate), data = fed50, lty = 2) +
+  geom_text(aes(x = estimate, y = 0.05, label = round(estimate, 2)), data = fed50,
+            size = 2, nudge_x = -1.5) +
+  facet_wrap(~geno)
+
+hist(ed50$estimate, breaks = 30)
+```
