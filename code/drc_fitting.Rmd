@@ -74,6 +74,7 @@ rack_temp <- read_csv("data/raw_field_data/CBASS_rack_temp_map.csv", show_col_ty
 
 
 md <- full_join(rack_temp, rack_pos)
+
 md <- md %>%
   unite(rack, rack_no, rack_config, sep = "")
 
@@ -109,7 +110,7 @@ pam1 <- pam1 %>%
   nest(data = -c(file_name, date)) %>%
   mutate(data2 = purrr::map(data, ipam_convert)) %>%
   unnest(data2) %>%
-  group_by(file_name, date) %>%
+  dplyr::group_by(file_name, date) %>%
   dplyr::select(file_name, date, aoi, var, value) %>%
   ungroup()
 
