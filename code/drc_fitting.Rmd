@@ -3,6 +3,8 @@ title: "drc_fitting"
 author: "Shayle Matsuda"
 date: "2026-02-06"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ---
@@ -62,6 +64,8 @@ ipam_convert <- function(data) {
 corals <- read_csv("data/raw_field_data/Collection_data.csv") %>%
   mutate(date = as_date(as.character(date_CBASS))) %>%
   filter(!is.na(date_CBASS))
+corals <- corals %>%
+  mutate(uniqueID = row_number()) #since no tag_no, creating a short unique ID for every genet
 
 # Import CBASS metadata (positions of corals on racks, and CBASS temperatures of each rack)
 rack_pos <- read_csv("data/raw_field_data/CBASS_rack_basket.csv") %>%
@@ -151,7 +155,7 @@ df <- pamf2 %>%
   #dplyr::select(rack, date_CBASS, tag_no, temp, aoi, position, var, value) %>%
   #filter(date_CBASS < 20240000) %>%
   mutate(max_temp = as.numeric(temp)) %>%
-  pivot_wider(names_from = var, values_from = value) %>%
+  pivot_wider(names_from =  var, values_from = value) %>%
   mutate(fvfmraw = y_ii_, fvfm = y_ii_) %>%
   dplyr::select(date, tag_no, max_temp, f, fm, fvfmraw, fvfm)
 
