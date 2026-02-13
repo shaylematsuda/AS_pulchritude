@@ -132,36 +132,48 @@ pam <- pam1 %>%
 
 pamf <- left_join(pam, md) %>% left_join(corals)
 
-#Row 3817 of `x` matches multiple rows in `y`.
-left_join(pam, md) %>% slice(3817) #2022-12-10 basket 134
-corals %>% filter(date == "2022-12-10", basket_no == 134)
-
-#Row 20 of `y` matches multiple rows in `x`.
-corals %>% slice(20)
-left_join(pam, md) %>% filter(date == "2022-12-04", basket_no == 20) %>% print(n = nrow(.))
-
-### ^^ need to reconcile these errors above. until then, omit these rows.
-
-pamf1 <- pamf %>% filter(!(date == "2022-12-04" & basket_no == 20),
-                        !(date == "2022-12-10" & basket_no == 134))
-pamf2 <- filter(pamf1, !is.na(basket_no))
+write.csv(pamf,"pamf.csv")
+# 
+# 
+# #2/12/26 same issue as RC code below had. 
+# #Row 3649 of `x` matches multiple rows in `y`.
+# left_join(pam, md) %>% slice(3649) #2026-01-22 basket NA??
+# corals %>% filter(date == "2026-01-22", basket_no == NA) #does this mean metadata is bad on this date!!!!!
+# 
+# #Row 5 of `y` matches multiple rows in `x`.
+# corals %>% slice(5)
+# left_join(pam, md) %>% filter(date == "2026-01-20", basket_no == 15) %>% print(n = nrow(.))
+# 
+# ### ^^ need to reconcile these errors above. until then, omit these rows.
+# 
+# pamf1 <- pamf %>% filter(!(date == "2022-12-04" & basket_no == 20),
+#                         !(date == "2022-12-10" & basket_no == 134))
+# pamf2 <- filter(pamf1, !is.na(basket_no))
 
 ```
 
 # Fit dose-response curves
 ```{r}
 # Get Fv/Fm data and tidy
-df <- pamf2 %>%
+df <- pamf %>%
   #dplyr::select(rack, date_CBASS, tag_no, temp, aoi, position, var, value) %>%
   #filter(date_CBASS < 20240000) %>%
   mutate(max_temp = as.numeric(temp)) %>%
   pivot_wider(names_from =  var, values_from = value) %>%
   mutate(fvfmraw = y_ii_, fvfm = y_ii_) %>%
-  dplyr::select(date, tag_no, max_temp, f, fm, fvfmraw, fvfm)
+  dplyr::select(date, uniqueID, max_temp, f, fm, fvfmraw, fvfm)
 
 ggplot(df, aes(x = max_temp, y = fvfm, color = factor(year(date)))) +
   geom_jitter()
 
+#look at outlier IDs - ok they are all UniqueID 59, which is CBASS 1/22 Bag 71 (basket BAG71)
+library(ggrepel)
+
+ggplot(df, aes(x = max_temp, y = fvfm, color = factor(year(date)))) +
+  geom_jitter(width = 0.15, height = 0) +
+  geom_text_repel(aes(label = uniqueID),
+                  size = 3,
+                  max.overlaps = Inf)
 
 # Define function to fit 3-parameter LL model to data and return NULL if fitting error
 ll3 <- function(data) {
@@ -182,7 +194,7 @@ initmods <- df %>%
 
 # Extract ed50 parameter values from model fits
 ed50 <- initmods %>% 
-  dplyr::select(date, tag_no, pars) %>%
+  dplyr::select(date, uniqueID, pars) %>%
   unnest(pars) %>%
   filter(term == "ED50")
 
@@ -194,19 +206,65 @@ ggplot(ed50, aes(x = factor(year(date)), y = estimate)) +
   geom_violin() +
   geom_jitter(width = 0.25)
 
-# Collect raw data, fitted values, and diagnostics
+#Collect raw data, fitted values, and diagnostics <- not running right creating duplicates 
 vals <- initmods %>%
-  select(date, tag_no, pred) %>%
+  select(date, uniqueID, pred) %>%
   unnest(pred) %>%
   full_join(ed50) %>%
   full_join(df) %>%
   rename(ed50 = estimate) %>%
   mutate(problem = "none")
+    #this is creating random duplicates of specific rows: 387 and 159. No idea why. 
 
-vals %>%
-  filter(tag_no == 11)
+#vals %>%
+#  filter(tag_no == 11)
+#what values are duplicating
+x <- initmods %>%
+  select(date, uniqueID, pred) %>%
+  unnest(pred) %>%
+  full_join(ed50, by = c("date", "uniqueID"))   # keep as-is for now
 
+join_key <- c("date", "uniqueID", "max_temp", "f", "fm", "fvfmraw", "fvfm")
 
+dup_x_keys <- x %>%
+  count(across(all_of(join_key)), name = "n_x") %>%
+  filter(n_x > 1)
+
+dup_y_keys <- df %>%
+  count(across(all_of(join_key)), name = "n_y") %>%
+  filter(n_y > 1)
+#uniqueIDs 23 and 91 are duplcated 
+dup_x_rows <- x %>%
+  semi_join(dup_x_keys, by = join_key) %>%
+  arrange(date, uniqueID, max_temp)
+
+dup_y_rows <- df %>%
+  semi_join(dup_y_keys, by = join_key) %>%
+  arrange(date, uniqueID, max_temp)
+
+dup_both_keys <- dup_x_keys %>%
+  inner_join(dup_y_keys, by = join_key)
+
+dup_both_keys %>% arrange(desc(n_x * n_y)) %>% View()
+
+dup_both_x <- x %>%
+  semi_join(dup_both_keys, by = join_key) %>%
+  arrange(date, uniqueID, max_temp)
+
+dup_both_y <- df %>%
+  semi_join(dup_both_keys, by = join_key) %>%
+  arrange(date, uniqueID, max_temp)
+
+View(dup_both_x)
+View(dup_both_y)
+
+x %>% count(date, uniqueID) %>% filter(n > 1) %>% arrange(desc(n))
+df %>% count(date, uniqueID) %>% filter(n > 1) %>% arrange(desc(n))
+#why is there n=80 for uniqueID NA
+
+df %>% 
+  filter(is.na(uniqueID)) %>% 
+  View()
 
 ```
 
@@ -232,11 +290,11 @@ vals %>%
 
 # # Identify problematic data points based on cook's distance and residuals
 counts <- vals %>%
-  mutate(geno = tag_no) %>%
+  mutate(geno = uniqueID) %>%
   group_by(geno) %>%
   summarise(n = sum(!is.na(fvfm)))
 dff <- vals %>%
-  mutate(geno = tag_no) %>%
+  mutate(geno = uniqueID) %>%
   left_join(counts) %>%
   group_by(geno) %>%
   mutate(cooksd.thresh = 4/n) %>%   # Calculate cook's distance threshold as 4/n
@@ -267,11 +325,45 @@ fed50 <- fmods %>%
   unnest(pars) %>%
   filter(term == "ED50")
 
+#warnings....let's look #####
+dff %>%
+  group_by(geno) %>%
+  summarise(
+    temp_min = min(max_temp),
+    temp_max = max(max_temp),
+    temp_range = temp_max - temp_min,
+    fvfm_min = min(fvfm, na.rm = TRUE)
+  ) %>%
+  arrange(desc(temp_range))
+
+bad_genos <- fmods %>%
+  select(geno, pars) %>%
+  unnest(pars) %>%
+  filter(term == "ED50", is.nan(std.error) | is.na(std.error) | estimate > 50) %>%
+  distinct(geno) %>%
+  pull(geno)
+
+bad_genos
+length(bad_genos)
+
+dff %>%
+  filter(geno %in% bad_genos) %>%
+  ggplot(aes(max_temp, fvfm)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~geno)
+
+#####So some of these genotypes do not have a sigmoidal curve, making model issues. We should figure out how to handle and also check on the species ID of these genos. 
+
+#temporarily, remove rows with the issues
+fed50_filt <- fed50 %>%
+  filter(is.finite(estimate), is.finite(std.error))
+
+
 # Collect raw data, fitted values, and ed50 estimates
 fvals <- fmods %>%
   select(geno, pred) %>%
   unnest(pred) %>%
-  full_join(fed50) %>%
+  full_join(fed50_filt) %>%
   full_join(select(dff, geno, max_temp, f, fm, fvfmraw, problem, fvfm)) %>%
   rename(ed50 = estimate)
 ```

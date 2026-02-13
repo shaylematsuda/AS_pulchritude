@@ -113,19 +113,19 @@ date_sampled,site,collected_by,gps_id,am_pm,bag_no,time_sample12hr,time_sample12
 20260122,Nuuuli North,TC,GPS1,PM,54,5:05,17:05,6,45,middle of the big patch,20260123
 20260122,Nuuuli North,TC,GPS1,PM,82,5:10,17:10,4,37,right of the big patch,20260123
 20260122,Nuuuli North,TC,GPS1,PM,50,5:15,17:15,1,15,,20260123
-20260124,Auasi,SM,GPS4,AM,47,9:05,9:05,3,20,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,SM,GPS4,AM,46,9:10,9:10,1.5,23,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,SM,GPS4,AM,44,9:13,9:13,2,31,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,SM,GPS4,AM,48,9:17,9:17,3,47,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,SM,GPS4,AM,45,9:19,9:19,1.5,19,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,SM,GPS4,AM,42,9:24,9:24,2,30,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,SM,GPS4,AM,41,9:28,9:28,1.5,26,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,RC,GPS3,AM,59,9:05,9:05,2,39,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,RC,GPS3,AM,22,9:09,9:09,2,48,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,RC,GPS3,AM,56,9:14,9:14,3,32,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,RC,GPS3,AM,18,9:17,9:17,3,25,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,RC,GPS3,AM,58,9:20,9:20,3,27,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Auasi,RC,GPS3,AM,38,9:27,9:27,3,37,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Airport,RC,GPS3,PM,73,3:45,15:45,7,22,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Airport,TC,GPS1,PM,82,4:05,16:05,10,44,Died overnight in holding tank due to 46C temp spike,20260123
-20260124,Utulei ,TC,GPS1,PM,29,12:01,12:01,4,18,Died overnight in holding tank due to 46C temp spike,20260123
+20260124,Auasi,SM,GPS4,AM,47,9:05,9:05,3,20,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,SM,GPS4,AM,46,9:10,9:10,1.5,23,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,SM,GPS4,AM,44,9:13,9:13,2,31,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,SM,GPS4,AM,48,9:17,9:17,3,47,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,SM,GPS4,AM,45,9:19,9:19,1.5,19,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,SM,GPS4,AM,42,9:24,9:24,2,30,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,SM,GPS4,AM,41,9:28,9:28,1.5,26,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,RC,GPS3,AM,59,9:05,9:05,2,39,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,RC,GPS3,AM,22,9:09,9:09,2,48,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,RC,GPS3,AM,56,9:14,9:14,3,32,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,RC,GPS3,AM,18,9:17,9:17,3,25,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,RC,GPS3,AM,58,9:20,9:20,3,27,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Auasi,RC,GPS3,AM,38,9:27,9:27,3,37,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Airport,RC,GPS3,PM,73,3:45,15:45,7,22,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Airport,TC,GPS1,PM,82,4:05,16:05,10,44,Died overnight in holding tank due to 46C temp spike,NA
+20260124,Utulei ,TC,GPS1,PM,29,12:01,12:01,4,18,Died overnight in holding tank due to 46C temp spike,NA
