@@ -132,7 +132,7 @@ pam <- pam1 %>%
 
 pamf <- left_join(pam, md) %>% left_join(corals)
 
-write.csv(pamf,"pamf.csv")
+#write.csv(pamf,"pamf.csv")
 # 
 # 
 # #2/12/26 same issue as RC code below had. 
@@ -216,55 +216,17 @@ vals <- initmods %>%
   mutate(problem = "none")
     #this is creating random duplicates of specific rows: 387 and 159. No idea why. 
 
-#vals %>%
-#  filter(tag_no == 11)
-#what values are duplicating
-x <- initmods %>%
-  select(date, uniqueID, pred) %>%
-  unnest(pred) %>%
-  full_join(ed50, by = c("date", "uniqueID"))   # keep as-is for now
+dups <- vals %>%
+  add_count(across(everything())) %>%   # count identical rows
+  filter(n > 1) %>%                     # keep only duplicated rows
+  select(-n)    #removing UniqueID 23 and 89 at 29C only ** not sure where this is happening **
 
-join_key <- c("date", "uniqueID", "max_temp", "f", "fm", "fvfmraw", "fvfm")
+dups
+#Can't figure out where this is coming from. remove duplicate rows for now (2/19)
+vals <- vals %>% distinct()
 
-dup_x_keys <- x %>%
-  count(across(all_of(join_key)), name = "n_x") %>%
-  filter(n_x > 1)
 
-dup_y_keys <- df %>%
-  count(across(all_of(join_key)), name = "n_y") %>%
-  filter(n_y > 1)
-#uniqueIDs 23 and 91 are duplcated 
-dup_x_rows <- x %>%
-  semi_join(dup_x_keys, by = join_key) %>%
-  arrange(date, uniqueID, max_temp)
 
-dup_y_rows <- df %>%
-  semi_join(dup_y_keys, by = join_key) %>%
-  arrange(date, uniqueID, max_temp)
-
-dup_both_keys <- dup_x_keys %>%
-  inner_join(dup_y_keys, by = join_key)
-
-dup_both_keys %>% arrange(desc(n_x * n_y)) %>% View()
-
-dup_both_x <- x %>%
-  semi_join(dup_both_keys, by = join_key) %>%
-  arrange(date, uniqueID, max_temp)
-
-dup_both_y <- df %>%
-  semi_join(dup_both_keys, by = join_key) %>%
-  arrange(date, uniqueID, max_temp)
-
-View(dup_both_x)
-View(dup_both_y)
-
-x %>% count(date, uniqueID) %>% filter(n > 1) %>% arrange(desc(n))
-df %>% count(date, uniqueID) %>% filter(n > 1) %>% arrange(desc(n))
-#why is there n=80 for uniqueID NA
-
-df %>% 
-  filter(is.na(uniqueID)) %>% 
-  View()
 
 ```
 
@@ -346,11 +308,12 @@ bad_genos <- fmods %>%
 bad_genos
 length(bad_genos)
 
-dff %>%
+bad_genos<-dff %>%
   filter(geno %in% bad_genos) %>%
   ggplot(aes(max_temp, fvfm)) +
   geom_point(alpha = 0.5) +
-  facet_wrap(~geno)
+  facet_wrap(~geno);bad_genos
+
 
 #####So some of these genotypes do not have a sigmoidal curve, making model issues. We should figure out how to handle and also check on the species ID of these genos. 
 
@@ -372,13 +335,13 @@ fvals <- fmods %>%
 # Plot dose response curves for each genotype
 ```{r plot, fig.width = 10, fig.height = 10}
 ed50 <- ed50 %>%
-  mutate(tag_no = factor(tag_no))
+  mutate(ID = factor(uniqueID))
 fed50 <- fed50 %>%
-  mutate(tag_no = factor(geno))
+  mutate(ID = factor(geno))
 
 
 vals <- vals %>%
-  mutate(tag_no = fct_reorder(factor(tag_no), ed50, .fun = mean))
+  mutate(tag_no = fct_reorder(factor(uniqueID), ed50, .fun = mean))
 fvals <- fvals %>%
   mutate(geno = fct_reorder(factor(geno), ed50, .fun = mean))
 

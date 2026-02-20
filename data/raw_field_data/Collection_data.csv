@@ -53,8 +53,8 @@ date_sampled,site,collected_by,gps_id,am_pm,bag_no,time_sample12hr,time_sample12
 20260121,Amouli,SM,GPS4,AM,35,11:14,11:14,2,35,,20260122
 20260121,Amouli,SM,GPS4,AM,17,11:18,11:18,2,18,,20260122
 20260121,Amouli,SM,GPS4,AM,67,11:21,11:21,2,29,,20260122
-20260121,Amouli,TC,GPS1,AM,78,8:35,8:35,3,NA,Lost and not put in basket,20260122
-20260121,Amouli,TC,GPS1,AM,31,8:41,8:41,3,NA,Lost and not put in basket,20260122
+20260121,Amouli,TC,GPS1,AM,78,8:35,8:35,3,NA,Lost and not put in basket,NA
+20260121,Amouli,TC,GPS1,AM,31,8:41,8:41,3,NA,Lost and not put in basket,NA
 20260121,Amouli,TC,GPS1,AM,33,8:47,8:47,3,36,,20260122
 20260121,Amouli,TC,GPS1,AM,15,8:54,8:54,3,28,,20260122
 20260121,Alofau,TC,GPS1,AM,71,9:50,9:50,4,BAG71,,20260122
@@ -113,6 +113,11 @@ date_sampled,site,collected_by,gps_id,am_pm,bag_no,time_sample12hr,time_sample12
 20260122,Nuuuli North,TC,GPS1,PM,54,5:05,17:05,6,45,middle of the big patch,20260123
 20260122,Nuuuli North,TC,GPS1,PM,82,5:10,17:10,4,37,right of the big patch,20260123
 20260122,Nuuuli North,TC,GPS1,PM,50,5:15,17:15,1,15,,20260123
+20260123,Fanga'alu,SM,GPS4,AM,55,10:50,10:50,4,BAG55,,20260123
+20260123,Fanga'alu,TC,GPS1,AM,13,10:34,10:34,4,BAG13,,20260123
+20260123,Fanga'alu,SM,GPS4,AM,6,10:54,10:54,4,BAG6,,20260123
+20260123,Fanga'alu,SM,GPS4,AM,17,10:57,10:57,5,BAG17,,20260123
+20260123,Fanga'alu,RC,GPS3,AM,74,10:46,10:46,2,BAG74,,20260123
 20260124,Auasi,SM,GPS4,AM,47,9:05,9:05,3,20,Died overnight in holding tank due to 46C temp spike,NA
 20260124,Auasi,SM,GPS4,AM,46,9:10,9:10,1.5,23,Died overnight in holding tank due to 46C temp spike,NA
 20260124,Auasi,SM,GPS4,AM,44,9:13,9:13,2,31,Died overnight in holding tank due to 46C temp spike,NA
