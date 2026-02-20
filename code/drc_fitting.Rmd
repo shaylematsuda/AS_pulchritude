@@ -373,4 +373,35 @@ ggplot(vals, aes(x = max_temp, y = fvfm)) +
   coord_cartesian(xlim = c(26, 40)) #set these boundaries to filter out the outliers for now
 
 hist(ed50$estimate, breaks = 30)
+
+#mean
+ed50_mean<-fed50_filt %>%
+  summarise(
+    mean_estimate = mean(estimate, na.rm = TRUE),
+    median_estimate = median(estimate, na.rm = TRUE)
+  )
 ```
+
+example
+```{r}
+
+id_example <- "40"
+
+vals_one  <- vals  %>% filter(uniqueID == id_example)
+fed50_one <- fed50_filt %>% filter(uniqueID == id_example)
+
+ggplot(vals_one, aes(x = max_temp, y = fvfm)) +
+  geom_point(size = 2) +
+  geom_line(aes(y = .fitted), linewidth = 1) +
+  geom_vline(aes(xintercept = estimate), data = fed50_one, lty = 2) +
+  geom_text(aes(x = estimate, y = 0.05, label = round(estimate, 2)),
+            data = fed50_one, size = 4, nudge_x = -0.8) +
+  coord_cartesian(xlim = c(26, 40)) +
+  labs(
+    x = "Temperature (°C)",
+    y = "Fv/Fm",
+    title = paste("Example CBASS Curve – UniqueID", id_example)
+  ) +
+  theme_classic()
+```
+
