@@ -214,6 +214,7 @@ vals <- initmods %>%
   full_join(df) %>%
   rename(ed50 = estimate) %>%
   mutate(problem = "none")
+
 countvals<-vals %>% count(uniqueID)
     #this is creating random duplicates of specific rows: 387 and 159. No idea why. 
 
@@ -236,7 +237,7 @@ vals <- vals %>% distinct()
 # #### diagnostics
 # Extract hill parameter values from model fits
 # hill <- initmods %>%
-#   select(nursery, geno, pars) %>%
+#   select(nursery, uniqueID, pars) %>%
 #   unnest(pars) %>%
 #   filter(term == "hill")
 # ggplot(hill) +
@@ -244,7 +245,7 @@ vals <- vals %>% distinct()
 # hill %>% arrange(estimate)
 # 
 # maxes <- initmods %>%
-#   select(nursery, geno, pars) %>%
+#   select(nursery, uniqueID, pars) %>%
 #   unnest(pars) %>%
 #   filter(term == "max")
 # ggplot(maxes) +
@@ -253,19 +254,19 @@ vals <- vals %>% distinct()
 
 # # Identify problematic data points based on cook's distance and residuals
 counts <- vals %>%
-  mutate(geno = uniqueID) %>%
-  group_by(geno) %>%
+  mutate(uniqueID = uniqueID) %>%
+  group_by(uniqueID) %>%
   summarise(n = sum(!is.na(fvfm)))
 dff <- vals %>%
-  mutate(geno = uniqueID) %>%
+  mutate(uniqueID = uniqueID) %>%
   left_join(counts) %>%
-  group_by(geno) %>%
+  group_by(uniqueID) %>%
   mutate(cooksd.thresh = 4/n) %>%   # Calculate cook's distance threshold as 4/n
   mutate(max_to_remove = floor(n * 0.2)) %>%
   ungroup() %>%
   mutate(problem = case_when(.cooksd > cooksd.thresh ~ "high cook's distance",
                              TRUE ~ "none")) %>%
-  group_by(geno, outlier = problem %in% c("high cook's distance", "high residual")) %>%
+  group_by(uniqueID, outlier = problem %in% c("high cook's distance", "high residual")) %>%
   mutate(n.outliers = n(),
          rank.out = order(.cooksd, decreasing = TRUE)) %>%
   ungroup() %>%
@@ -274,7 +275,7 @@ dff <- vals %>%
 
 # Refit models without problematic points
 fmods <- dff %>%
-  select(geno, max_temp, f, fm, fvfmraw, problem, fvfm) %>%
+  select(uniqueID, max_temp, f, fm, fvfmraw, problem, fvfm) %>%
   nest(data = c(max_temp, f, fm, fvfmraw, fvfm, problem)) %>%
   # Fit the model to each coral
   mutate(ll3 = map(data, tryll3)) %>%
@@ -284,13 +285,13 @@ fmods <- dff %>%
 
 # Extract ed50 parameter values from model fits
 fed50 <- fmods %>%
-  select(geno, pars) %>%
+  select(uniqueID, pars) %>%
   unnest(pars) %>%
   filter(term == "ED50")
 
 #warnings....let's look #####
 dff %>%
-  group_by(geno) %>%
+  group_by(uniqueID) %>%
   summarise(
     temp_min = min(max_temp),
     temp_max = max(max_temp),
@@ -299,61 +300,77 @@ dff %>%
   ) %>%
   arrange(desc(temp_range))
 
-bad_genos <- fmods %>%
-  select(geno, pars) %>%
+bad_uniqueIDs <- fmods %>%
+  select(uniqueID, pars) %>%
   unnest(pars) %>%
   filter(term == "ED50", is.nan(std.error) | is.na(std.error) | estimate > 50) %>%
-  distinct(geno) %>%
-  pull(geno)
+  distinct(uniqueID) %>%
+  pull(uniqueID)
 
-bad_genos
-length(bad_genos)
+bad_uniqueIDs
+length(bad_uniqueIDs)
 
-bad_genos<-dff %>%
-  filter(geno %in% bad_genos) %>%
+bad_uniqueIDs<-dff %>%
+  filter(uniqueID %in% bad_uniqueIDs) %>%
   ggplot(aes(max_temp, fvfm)) +
   geom_point(alpha = 0.5) +
-  facet_wrap(~geno);bad_genos
+  facet_wrap(~uniqueID);bad_uniqueIDs
 
 
-#####So some of these genotypes do not have a sigmoidal curve, making model issues. We should figure out how to handle and also check on the species ID of these genos. 
 
-#temporarily, remove rows with the issues
+#####So some of these uniqueIDtypes do not have a sigmoidal curve, making model issues. We should figure out how to handle and also check on the species ID of these uniqueIDs. 
+
+#temporarily, remove rows with the issues that are lower than 29 and higher than 38
 fed50_filt <- fed50 %>%
   filter(is.finite(estimate), is.finite(std.error))
-
+fed50_filt <- fed50_filt %>%
+  filter(estimate >= 29, estimate <= 38) 
 
 # Collect raw data, fitted values, and ed50 estimates
 fvals <- fmods %>%
-  select(geno, pred) %>%
+  select(uniqueID, pred) %>%
   unnest(pred) %>%
   full_join(fed50_filt) %>%
-  full_join(select(dff, geno, max_temp, f, fm, fvfmraw, problem, fvfm)) %>%
+  full_join(select(dff, uniqueID, max_temp, f, fm, fvfmraw, problem, fvfm)) %>%
   rename(ed50 = estimate)
 ```
 
 
-# Plot dose response curves for each genotype
+# Plot dose response curves for each uniqueIDtype
 ```{r plot, fig.width = 10, fig.height = 10}
 ed50 <- ed50 %>%
   mutate(ID = factor(uniqueID))
+ed50 <- ed50 %>%
+  filter(estimate >= 29, estimate <= 38) 
+
 fed50 <- fed50 %>%
-  mutate(ID = factor(geno))
+  mutate(ID = factor(uniqueID))
 
 
 vals <- vals %>%
-  mutate(tag_no = fct_reorder(factor(uniqueID), ed50, .fun = mean))
-fvals <- fvals %>%
-  mutate(geno = fct_reorder(factor(geno), ed50, .fun = mean))
+  mutate(uniqueID = fct_reorder(factor(uniqueID), ed50, .fun = mean))
+fvals <- vals %>%
+  mutate(uniqueID = fct_reorder(factor(uniqueID), ed50, .fun = mean))
 
+
+id_order <- fed50_filt %>%
+  group_by(uniqueID) %>%
+  summarise(estimate = first(estimate), .groups = "drop") %>%
+  arrange(desc(estimate)) %>%
+  pull(uniqueID)
+
+vals <- vals %>%
+  mutate(uniqueID = factor(as.character(uniqueID),
+                           levels = as.character(id_order)))
 
 ggplot(vals, aes(x = max_temp, y = fvfm)) +
   geom_point() +
-  geom_line(aes(y = .fitted)) +
-  geom_vline(aes(xintercept = estimate), data = fed50, lty = 2) +
-  geom_text(aes(x = estimate, y = 0.05, label = round(estimate, 2)), data = fed50,
-            size = 2, nudge_x = -1.5) +
-  facet_wrap(~geno)
+  geom_line(aes(y = .fitted, group = uniqueID)) +
+  geom_vline(aes(xintercept = estimate), data = fed50_filt, lty = 2) +
+  geom_text(aes(x = estimate, y = 0.05, label = round(estimate, 2)),
+            data = fed50_filt, size = 2, nudge_x = -1.5) +
+  facet_wrap(~uniqueID) +
+  coord_cartesian(xlim = c(26, 40)) #set these boundaries to filter out the outliers for now
 
 hist(ed50$estimate, breaks = 30)
 ```
