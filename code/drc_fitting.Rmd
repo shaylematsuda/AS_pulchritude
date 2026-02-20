@@ -214,6 +214,7 @@ vals <- initmods %>%
   full_join(df) %>%
   rename(ed50 = estimate) %>%
   mutate(problem = "none")
+countvals<-vals %>% count(uniqueID)
     #this is creating random duplicates of specific rows: 387 and 159. No idea why. 
 
 dups <- vals %>%
