@@ -132,6 +132,7 @@ pam <- pam1 %>%
 
 pamf <- left_join(pam, md) %>% left_join(corals)
 
+
 #write.csv(pamf,"pamf.csv")
 # 
 # 
@@ -152,6 +153,21 @@ pamf <- left_join(pam, md) %>% left_join(corals)
 
 ```
 
+# Data QC
+```{r}
+pamf <- pamf %>%
+  filter(!uniqueID == "57")      # corals held overnight in bag with no holes / it died pre-CBASS...
+
+pamf %>%
+  filter(date == "2026-01-23" & basket_no == "43", var == "y_ii_")
+
+pamf %>%
+  filter(var == "y_ii_") %>%
+  count(date, basket_no) %>%
+  arrange(n)
+# so everything has 16 data points - yay!
+```
+
 # Fit dose-response curves
 ```{r}
 # Get Fv/Fm data and tidy
@@ -159,21 +175,18 @@ df <- pamf %>%
   #dplyr::select(rack, date_CBASS, tag_no, temp, aoi, position, var, value) %>%
   #filter(date_CBASS < 20240000) %>%
   mutate(max_temp = as.numeric(temp)) %>%
-  pivot_wider(names_from =  var, values_from = value) %>%
+  pivot_wider(names_from = var, values_from = value) %>%
   mutate(fvfmraw = y_ii_, fvfm = y_ii_) %>%
-  dplyr::select(date, uniqueID, max_temp, f, fm, fvfmraw, fvfm)
+  dplyr::select(date, uniqueID, max_temp, aoi, f, fm, fvfmraw, fvfm)
 
-ggplot(df, aes(x = max_temp, y = fvfm, color = factor(year(date)))) +
-  geom_jitter()
+df %>% count(uniqueID) %>% arrange(n)
+df %>% filter(is.na(fvfm))
+df %>% filter(fvfm == 0)
 
-#look at outlier IDs - ok they are all UniqueID 59, which is CBASS 1/22 Bag 71 (basket BAG71)
-library(ggrepel)
+# Substitute Fv/Fm value of 0.0001 for zeros
+# df <- df %>%
+#   mutate(fvfm = case_when(fvfm == 0 ~ 0.0001, TRUE ~ fvfm))
 
-ggplot(df, aes(x = max_temp, y = fvfm, color = factor(year(date)))) +
-  geom_jitter(width = 0.15, height = 0) +
-  geom_text_repel(aes(label = uniqueID),
-                  size = 3,
-                  max.overlaps = Inf)
 
 # Define function to fit 3-parameter LL model to data and return NULL if fitting error
 ll3 <- function(data) {
@@ -185,7 +198,7 @@ tryll3 <- possibly(ll3, otherwise = NULL)
 
 # Fit model to each coral, get parameters, fitted values, and residuals
 initmods <- df %>%
-  nest(data = c(max_temp, f, fm, fvfmraw, fvfm)) %>%
+  nest(data = c(max_temp, aoi, f, fm, fvfmraw, fvfm)) %>%
   # Fit the model to each coral
   mutate(ll3 = map(data, tryll3)) %>%
   # Get model parameters and fitted values/residuals
@@ -215,29 +228,17 @@ vals <- initmods %>%
   rename(ed50 = estimate) %>%
   mutate(problem = "none")
 
-countvals<-vals %>% count(uniqueID)
-    #this is creating random duplicates of specific rows: 387 and 159. No idea why. 
+vals
 
-dups <- vals %>%
-  add_count(across(everything())) %>%   # count identical rows
-  filter(n > 1) %>%                     # keep only duplicated rows
-  select(-n)    #removing UniqueID 23 and 89 at 29C only ** not sure where this is happening **
-
-dups
-#Can't figure out where this is coming from. remove duplicate rows for now (2/19)
-vals <- vals %>% distinct()
-
-
-
-
+vals %>% count(uniqueID) %>% arrange(n)
 ```
 
 ```{r drc_diagnostics}
 
-# #### diagnostics
-# Extract hill parameter values from model fits
+#### diagnostics
+#Extract hill parameter values from model fits
 # hill <- initmods %>%
-#   select(nursery, uniqueID, pars) %>%
+#   select(uniqueID, pars) %>%
 #   unnest(pars) %>%
 #   filter(term == "hill")
 # ggplot(hill) +
@@ -245,7 +246,7 @@ vals <- vals %>% distinct()
 # hill %>% arrange(estimate)
 # 
 # maxes <- initmods %>%
-#   select(nursery, uniqueID, pars) %>%
+#   select(uniqueID, pars) %>%
 #   unnest(pars) %>%
 #   filter(term == "max")
 # ggplot(maxes) +
@@ -254,17 +255,19 @@ vals <- vals %>% distinct()
 
 # # Identify problematic data points based on cook's distance and residuals
 counts <- vals %>%
-  mutate(uniqueID = uniqueID) %>%
   group_by(uniqueID) %>%
   summarise(n = sum(!is.na(fvfm)))
+
 dff <- vals %>%
   mutate(uniqueID = uniqueID) %>%
   left_join(counts) %>%
   group_by(uniqueID) %>%
+  mutate(resid.thresh = 2*sd(.resid, na.rm = T)) %>%  # Calculate residual threshold as 2 standard deviations
   mutate(cooksd.thresh = 4/n) %>%   # Calculate cook's distance threshold as 4/n
   mutate(max_to_remove = floor(n * 0.2)) %>%
   ungroup() %>%
   mutate(problem = case_when(.cooksd > cooksd.thresh ~ "high cook's distance",
+                             .resid > resid.thresh ~ "high residual",
                              TRUE ~ "none")) %>%
   group_by(uniqueID, outlier = problem %in% c("high cook's distance", "high residual")) %>%
   mutate(n.outliers = n(),
@@ -273,10 +276,12 @@ dff <- vals %>%
   mutate(fvfm = case_when(outlier & rank.out <= max_to_remove ~ .fitted,
                           TRUE ~ fvfm))
 
+dff %>% count(problem)
+
 # Refit models without problematic points
 fmods <- dff %>%
-  select(uniqueID, max_temp, f, fm, fvfmraw, problem, fvfm) %>%
-  nest(data = c(max_temp, f, fm, fvfmraw, fvfm, problem)) %>%
+  select(uniqueID, max_temp, aoi, f, fm, fvfmraw, problem, fvfm) %>%
+  nest(data = c(max_temp, aoi, f, fm, fvfmraw, fvfm, problem)) %>%
   # Fit the model to each coral
   mutate(ll3 = map(data, tryll3)) %>%
   # Get model parameters and fitted values/residuals
@@ -289,49 +294,51 @@ fed50 <- fmods %>%
   unnest(pars) %>%
   filter(term == "ED50")
 
-#warnings....let's look #####
-dff %>%
-  group_by(uniqueID) %>%
-  summarise(
-    temp_min = min(max_temp),
-    temp_max = max(max_temp),
-    temp_range = temp_max - temp_min,
-    fvfm_min = min(fvfm, na.rm = TRUE)
-  ) %>%
-  arrange(desc(temp_range))
-
-bad_uniqueIDs <- fmods %>%
-  select(uniqueID, pars) %>%
-  unnest(pars) %>%
-  filter(term == "ED50", is.nan(std.error) | is.na(std.error) | estimate > 50) %>%
-  distinct(uniqueID) %>%
-  pull(uniqueID)
-
-bad_uniqueIDs
-length(bad_uniqueIDs)
-
-bad_uniqueIDs<-dff %>%
-  filter(uniqueID %in% bad_uniqueIDs) %>%
-  ggplot(aes(max_temp, fvfm)) +
-  geom_point(alpha = 0.5) +
-  facet_wrap(~uniqueID);bad_uniqueIDs
-
-
-
-#####So some of these uniqueIDtypes do not have a sigmoidal curve, making model issues. We should figure out how to handle and also check on the species ID of these uniqueIDs. 
-
-#temporarily, remove rows with the issues that are lower than 29 and higher than 38
-fed50_filt <- fed50 %>%
-  filter(is.finite(estimate), is.finite(std.error))
-fed50_filt <- fed50_filt %>%
-  filter(estimate >= 29, estimate <= 38) 
+# #warnings....let's look #####
+# dff %>%
+#   group_by(uniqueID) %>%
+#   summarise(
+#     temp_min = min(max_temp),
+#     temp_max = max(max_temp),
+#     temp_range = temp_max - temp_min,
+#     fvfm_min = min(fvfm, na.rm = TRUE)
+#   ) %>%
+#   arrange(desc(temp_range))
+# 
+# dff %>% filter(is.na(uniqueID))
+# 
+# bad_uniqueIDs <- fmods %>%
+#   select(uniqueID, pars) %>%
+#   unnest(pars) %>%
+#   filter(term == "ED50", is.nan(std.error) | is.na(std.error) | estimate > 50) %>%
+#   distinct(uniqueID) %>%
+#   pull(uniqueID)
+# 
+# bad_uniqueIDs
+# length(bad_uniqueIDs)
+# 
+# bad_uniqueIDs<-dff %>%
+#   filter(uniqueID %in% bad_uniqueIDs) %>%
+#   ggplot(aes(max_temp, fvfm)) +
+#   geom_point(alpha = 0.5) +
+# #   facet_wrap(~uniqueID);bad_uniqueIDs
+# 
+# 
+# 
+# #####So some of these uniqueIDtypes do not have a sigmoidal curve, making model issues. We should figure out how to handle and also check on the species ID of these uniqueIDs. 
+# 
+# #temporarily, remove rows with the issues that are lower than 29 and higher than 38
+# fed50_filt <- fed50 %>%
+#   filter(is.finite(estimate), is.finite(std.error))
+# fed50_filt <- fed50_filt %>%
+#   filter(estimate >= 29, estimate <= 38) 
 
 # Collect raw data, fitted values, and ed50 estimates
 fvals <- fmods %>%
   select(uniqueID, pred) %>%
   unnest(pred) %>%
-  full_join(fed50_filt) %>%
-  full_join(select(dff, uniqueID, max_temp, f, fm, fvfmraw, problem, fvfm)) %>%
+  full_join(fed50) %>%
+  full_join(select(dff, uniqueID, max_temp, aoi, f, fm, fvfmraw, problem, fvfm)) %>%
   rename(ed50 = estimate)
 ```
 
@@ -340,8 +347,8 @@ fvals <- fmods %>%
 ```{r plot, fig.width = 10, fig.height = 10}
 ed50 <- ed50 %>%
   mutate(ID = factor(uniqueID))
-ed50 <- ed50 %>%
-  filter(estimate >= 29, estimate <= 38) 
+# ed50 <- ed50 %>%
+#   filter(estimate >= 29, estimate <= 38) 
 
 fed50 <- fed50 %>%
   mutate(ID = factor(uniqueID))
@@ -363,7 +370,7 @@ vals <- vals %>%
   mutate(uniqueID = factor(as.character(uniqueID),
                            levels = as.character(id_order)))
 
-ggplot(vals, aes(x = max_temp, y = fvfm)) +
+ggplot(fvals, aes(x = max_temp, y = fvfm)) +
   geom_point() +
   geom_line(aes(y = .fitted, group = uniqueID)) +
   geom_vline(aes(xintercept = estimate), data = fed50_filt, lty = 2) +
@@ -403,5 +410,43 @@ ggplot(vals_one, aes(x = max_temp, y = fvfm)) +
     title = paste("Example CBASS Curve – UniqueID", id_example)
   ) +
   theme_classic()
+```
+
+
+
+
+```{r plot, fig.width = 10, fig.height = 10, echo = FALSE}
+# Define function to plot raw data, fitted values, and ed50 for each genotype
+plotfits <- function(data) {
+  ggplot(data = data, aes(x = max_temp)) + 
+    geom_point(pch = 4, size = 1.25,
+               aes(y = fvfmraw, color = factor(problem, levels = c("none", "no  signal",
+                                              "abnormally high",  
+                                              "abnormally high w/ low Ft",  
+                                              "high residual", "high cook's distance")))) + 
+    geom_point(aes(y = fvfm), pch = 1, size = 2) + 
+    geom_line(data = drop_na(data, .fitted), 
+              aes(y = .fitted)) + 
+    geom_vline(data = distinct(data, uniqueID, ed50),
+               aes(xintercept = ed50), 
+               lwd = 0.2, lty = 2) +
+    geom_text(data = distinct(data, uniqueID, ed50),
+              aes(x = ed50, y = 0.05, label = round(ed50, 2)), 
+              hjust = 1, nudge_x = -0.2, size = 3) +
+    facet_wrap(~ uniqueID, drop = TRUE) +
+    scale_color_manual(name = "problem", drop = FALSE,
+                       values = c("black", "yellow", "red", "orange", "blue", "turquoise")) +
+    coord_cartesian(xlim = c(28, 50))
+}
+```
+
+# Plot fits
+```{r, fig.width = 10, fig.height = 10}
+# Plot fits
+plotfits(data = vals)
+
+plotfits(data = fvals)
+
+vals %>% filter(is.na(uniqueID))
 ```
 
