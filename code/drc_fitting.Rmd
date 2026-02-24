@@ -370,9 +370,9 @@ ggplot(vals, aes(x = max_temp, y = fvfm)) +
   geom_text(aes(x = estimate, y = 0.05, label = round(estimate, 2)),
             data = fed50_filt, size = 2, nudge_x = -1.5) +
   facet_wrap(~uniqueID) +
-  coord_cartesian(xlim = c(26, 40)) #set these boundaries to filter out the outliers for now
+  coord_cartesian(xlim = c(26, 50)) #set these boundaries to filter out the outliers for now
 
-hist(ed50$estimate, breaks = 30)
+hist(ed50$estimate, breaks = 50)
 
 #mean
 ed50_mean<-fed50_filt %>%
